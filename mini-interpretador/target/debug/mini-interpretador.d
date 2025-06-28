@@ -1,1 +1,1 @@
-/home/daviegito/git/mini_interpretador/mini-interpretador/target/debug/mini-interpretador: /home/daviegito/git/mini_interpretador/mini-interpretador/src/ast/mod.rs /home/daviegito/git/mini_interpretador/mini-interpretador/src/main.rs
+/home/daviegito/git/mini_interpretador/mini-interpretador/target/debug/mini-interpretador: /home/daviegito/git/mini_interpretador/mini-interpretador/src/ast/lexer.rs /home/daviegito/git/mini_interpretador/mini-interpretador/src/ast/mod.rs /home/daviegito/git/mini_interpretador/mini-interpretador/src/main.rs
