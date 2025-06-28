@@ -1,40 +1,55 @@
+use std::str::Chars;
 
-pub enum TokenKind {
+#[derive(Debug, PartialEq)]
+pub enum Token {
     Number(i64),
     Mais,
     Menos,
-    Asterisco,
-    Barra,
-    EsqPar,
-    DirPar,
+    Multiplica,
+    Divide,
 }
 
-pub struct TextSpan {
-    start: usize,
-    end: usize,
-    literal: String,
+pub struct Lexer<'a> {
+    //Isso aqui representa o próprio lexer e o chars funciona como iterador pelos chars da string
+    chars: Chars<'a>    
 }
 
-impl TextSpan {
-    pub fn new(start: usize, end:usize, literal: String) -> Self {
-        Self { start, end, literal  }
+impl<'a> Lexer<'a> {
+    //Cria uma nova instância do lexer com a string digitada pelo usuário
+    pub fn nova_instancia(input: &'a str) -> Self {
+        Lexer { chars: input.chars() } 
+    }   
+
+pub fn tokenizador(&mut self) -> Vec<Token> {
+//Transforma a string de entrada e retorna um vetor de token
+    let mut tokens = Vec::new();
+    while let Some(token) = self.proximo_token() {
+        //Esse loop basicamente é chamado até não ter mais tokens para serem "lidos"
+        tokens.push(token);
     }
+    tokens
+}
 
-    pub fn length(&self) -> usize {
-        self.end - self.start
+fn proximo_token(&mut self) -> Option<Token> {
+    let proximo_char = self.chars.next()?;
+    match proximo_char {
+        '+' => Some(Token::Mais),
+        '-' => Some(Token::Menos),
+        '*' => Some(Token::Multiplica),
+        '/' => Some(Token::Divide),
+        '0'..='9' => {
+            let mut number = proximo_char.to_digit(10)? as i64;
+            while let Some(proximo_char) = self.chars.clone().next() {
+                if let Some(digit) = proximo_char.to_digit(10) {
+                    number = number * 10 + digit as i64;
+                    self.chars.next();
+                } else {
+                    break;
+                }
+            }
+            Some(Token::Number(number))
+        }
+        _ => None,
     }
 }
-
-pub struct Token {
-    kind:TokenKind,
-    span: TextSpan
 }
-
-impl Token {
-    pub fn new(kind: TokenKind, span: TextSpan) -> Self {
-        Self { kind, span }
-    }
-
-}
-
-
