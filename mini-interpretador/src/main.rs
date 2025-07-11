@@ -15,7 +15,7 @@ fn main() {
     let input = input.trim();
     let mut lexer = Lexer::nova_instancia(input);
     let tokens = lexer.tokenizador();
-    
+
     //Em caso de sucesso - input
     println!("A expressão que você digitou é válida!");
     println!("Tokens gerados:");
