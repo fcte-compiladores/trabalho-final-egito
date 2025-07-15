@@ -1,2 +1,2 @@
-# mini_interpretador
-Projeto final da disciplina de Compiladores
+Mini Interpretador de Rust
+Este projeto serve como um interpretador de expressões algébricas em Rust
