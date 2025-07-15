@@ -1,12 +1,16 @@
 use crate::ast::{Stmt, Expr, Function, BinOp};
 use std::collections::HashMap;
 
+// Em linhas gerias, o interpretador recebe a árvore e executa as instruções dela avaliando o que
+// há nessa árvore. Mais ou menos parecido com o transformer.py do Lox.
+
 #[derive(Debug, Clone)]
 pub enum Value {
     Number(i64),
     Void,
 }
 
+// Isso garante que o formato de value realmente corresponde a um value
 impl Value {
     fn as_number(&self) -> i64 {
         match self {
@@ -21,6 +25,7 @@ pub struct Interpreter {
     locals: HashMap<String, Value>,
 }
 
+// Basicamente um detector de bugs, assim por dizer
 #[derive(Debug)]
 pub enum RuntimeError {
     UndefinedVariable(String),
@@ -30,6 +35,7 @@ pub enum RuntimeError {
     Return(Value), // Usado para controle de fluxo do return
 }
 
+// Basicamente garantindo uma interpretação correta das variáveis, expressões e funções
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter {
@@ -157,6 +163,7 @@ impl Interpreter {
     }
 }
 
+// Controle de interpretação dos erros/bugs
 impl std::fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

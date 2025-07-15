@@ -8,9 +8,10 @@ use parser::Parser;
 use interpreter::Interpreter;
 
 fn main() {
+    //Caso queira que outro programa seja lido, o path terá de ser mudado
     let input = std::fs::read_to_string("programa.mc").expect("Erro ao ler arquivo");
 
-    // Etapa 1: Lexical Analysis (Tokenização)
+    // Etapa 1: análise léxica
     let mut lexer = Lexer::nova_instancia(&input);
     let tokens = lexer.tokenizador();
 
@@ -20,7 +21,7 @@ fn main() {
     }
     println!();
 
-    // Etapa 2: Parsing (Análise Sintática)
+    // Etapa 2: análise sintática
     let mut parser = Parser::new(tokens);
     let (funcoes, main_body) = parser.parse();
 
@@ -36,7 +37,7 @@ fn main() {
     }
     println!();
 
-    // Etapa 3: Interpretação (Execução)
+    // Etapa 3: interpretação
     let mut interpreter = Interpreter::new();
 
     println!("=== EXECUTANDO PROGRAMA ===");

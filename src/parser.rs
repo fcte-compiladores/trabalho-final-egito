@@ -6,6 +6,7 @@ pub struct Parser {
     current: usize,
 }
 
+// Basicamente, a análise sintáTica sendo feita
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, current: 0 }
@@ -27,7 +28,7 @@ impl Parser {
                     funcoes.push(func);
                 }
             } else if in_main {
-                // Parse statements dentro da main
+                // Faz análise sintática dentro da main
                 let stmt = self.parse_statement();
                 main_body.push(stmt);
             } else {
@@ -40,10 +41,8 @@ impl Parser {
     }
 
     fn parse_function(&mut self) -> Function {
-        // Consome 'int'
         self.consume(&Token::Int, "Esperado 'int'");
 
-        // Nome da função
         let name = if let Token::Ident(n) = self.advance() {
             n.clone()
         } else {
@@ -88,7 +87,7 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Stmt {
-        // Declaração de variável: int nome = expressão;
+        // Declaração de variável
         if self.match_token(&Token::Int) {
             let name = if let Token::Ident(n) = self.advance() {
                 n.clone()
@@ -103,14 +102,14 @@ impl Parser {
             return Stmt::VarDecl { name, value };
         }
 
-        // Return statement
+        // Return
         if self.match_token(&Token::Return) {
             let expr = self.parse_expression();
             self.consume(&Token::PontoEVirgula, "Esperado ';'");
             return Stmt::Return(expr);
         }
 
-        // Expression statement
+        // Stmt dentro da expressão
         let expr = self.parse_expression();
         self.consume(&Token::PontoEVirgula, "Esperado ';'");
         Stmt::ExprStmt(expr)
@@ -168,7 +167,7 @@ impl Parser {
             return Expr::Number(num);
         }
 
-        // Identificador (variável ou chamada de função)
+        // Identificador
         if let Token::Ident(name) = self.peek() {
             let name = name.clone();
             self.advance();

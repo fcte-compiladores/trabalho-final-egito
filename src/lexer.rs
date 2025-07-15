@@ -1,4 +1,5 @@
-
+// O lexer basicamente faz análise léxica dividindo unidades em tokens e identificando qual o tipo
+// deles
 use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
@@ -16,7 +17,7 @@ pub enum Token {
     Menos,
     Multiplica,
     Divide,
-    Assign, // '='
+    Assign,
 
     // Pontuação
     AbrePar,      // (
@@ -97,7 +98,7 @@ impl<'a> Lexer<'a> {
                 '}' => Token::FechaChave,
                 ';' => Token::PontoEVirgula,
                 ',' => Token::Virgula,
-                _ => continue, // ignora caracteres desconhecidos
+                _ => continue,
             });
         }
 
