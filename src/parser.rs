@@ -1,12 +1,11 @@
 use crate::lexer::Token;
-use crate::ast::{Stmt, Expr, Function, BinOp};
+use crate::ast::{Stmt, Expr, Function, BinOp, LogicalOp, UnaryOp};
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 }
 
-// Basicamente, a análise sintáTica sendo feita
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, current: 0 }
@@ -28,7 +27,7 @@ impl Parser {
                     funcoes.push(func);
                 }
             } else if in_main {
-                // Faz análise sintática dentro da main
+                // Parse statements dentro da main
                 let stmt = self.parse_statement();
                 main_body.push(stmt);
             } else {
@@ -41,8 +40,12 @@ impl Parser {
     }
 
     fn parse_function(&mut self) -> Function {
-        self.consume(&Token::Int, "Esperado 'int'");
+        // Tipo de retorno (int ou bool)
+        if !self.match_tokens(&[Token::Int, Token::Bool]) {
+            panic!("Esperado tipo de retorno");
+        }
 
+        // Nome da função
         let name = if let Token::Ident(n) = self.advance() {
             n.clone()
         } else {
@@ -55,8 +58,10 @@ impl Parser {
 
         if !self.check(&Token::FechaPar) {
             loop {
-                // Tipo do parâmetro (int)
-                self.consume(&Token::Int, "Esperado 'int'");
+                // Tipo do parâmetro (int ou bool)
+                if !self.match_tokens(&[Token::Int, Token::Bool]) {
+                    panic!("Esperado tipo do parâmetro");
+                }
 
                 // Nome do parâmetro
                 if let Token::Ident(param_name) = self.advance() {
@@ -87,8 +92,8 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Stmt {
-        // Declaração de variável
-        if self.match_token(&Token::Int) {
+        // Declaração de variável: int/bool nome = expressão;
+        if self.match_tokens(&[Token::Int, Token::Bool]) {
             let name = if let Token::Ident(n) = self.advance() {
                 n.clone()
             } else {
@@ -102,21 +107,169 @@ impl Parser {
             return Stmt::VarDecl { name, value };
         }
 
-        // Return
+        // Return statement
         if self.match_token(&Token::Return) {
             let expr = self.parse_expression();
             self.consume(&Token::PontoEVirgula, "Esperado ';'");
             return Stmt::Return(expr);
         }
 
-        // Stmt dentro da expressão
+        // If statement
+        if self.match_token(&Token::If) {
+            self.consume(&Token::AbrePar, "Esperado '('");
+            let condition = self.parse_expression();
+            self.consume(&Token::FechaPar, "Esperado ')'");
+
+            let then_branch = self.parse_block();
+
+            let else_branch = if self.match_token(&Token::Else) {
+                Some(self.parse_block())
+            } else {
+                None
+            };
+
+            return Stmt::If { condition, then_branch, else_branch };
+        }
+
+        // While loop
+        if self.match_token(&Token::While) {
+            self.consume(&Token::AbrePar, "Esperado '('");
+            let condition = self.parse_expression();
+            self.consume(&Token::FechaPar, "Esperado ')'");
+
+            let body = self.parse_block();
+
+            return Stmt::While { condition, body };
+        }
+
+        // For loop
+        if self.match_token(&Token::For) {
+            self.consume(&Token::AbrePar, "Esperado '('");
+
+            // Inicialização (opcional)
+            let init = if self.check(&Token::PontoEVirgula) {
+                None
+            } else {
+                Some(Box::new(self.parse_statement()))
+            };
+
+            if init.is_none() {
+                self.consume(&Token::PontoEVirgula, "Esperado ';'");
+            }
+
+            // Condição (opcional)
+            let condition = if self.check(&Token::PontoEVirgula) {
+                None
+            } else {
+                Some(self.parse_expression())
+            };
+            self.consume(&Token::PontoEVirgula, "Esperado ';'");
+
+            // Atualização (opcional)
+            let update = if self.check(&Token::FechaPar) {
+                None
+            } else {
+                Some(self.parse_expression())
+            };
+            self.consume(&Token::FechaPar, "Esperado ')'");
+
+            let body = self.parse_block();
+
+            return Stmt::For { init, condition, update, body };
+        }
+
+        // Expression statement
         let expr = self.parse_expression();
         self.consume(&Token::PontoEVirgula, "Esperado ';'");
         Stmt::ExprStmt(expr)
     }
 
+    fn parse_block(&mut self) -> Vec<Stmt> {
+        self.consume(&Token::AbreChave, "Esperado '{'");
+        let mut statements = Vec::new();
+
+        while !self.check(&Token::FechaChave) && !self.is_at_end() {
+            statements.push(self.parse_statement());
+        }
+
+        self.consume(&Token::FechaChave, "Esperado '}'");
+        statements
+    }
+
     fn parse_expression(&mut self) -> Expr {
-        self.parse_additive()
+        self.parse_logical_or()
+    }
+
+    fn parse_logical_or(&mut self) -> Expr {
+        let mut expr = self.parse_logical_and();
+
+        while self.match_token(&Token::Or) {
+            let right = self.parse_logical_and();
+            expr = Expr::Logical {
+                op: LogicalOp::Or,
+                lhs: Box::new(expr),
+                rhs: Box::new(right),
+            };
+        }
+
+        expr
+    }
+
+    fn parse_logical_and(&mut self) -> Expr {
+        let mut expr = self.parse_equality();
+
+        while self.match_token(&Token::And) {
+            let right = self.parse_equality();
+            expr = Expr::Logical {
+                op: LogicalOp::And,
+                lhs: Box::new(expr),
+                rhs: Box::new(right),
+            };
+        }
+
+        expr
+    }
+
+    fn parse_equality(&mut self) -> Expr {
+        let mut expr = self.parse_comparison();
+
+        while self.match_tokens(&[Token::Equal, Token::NotEqual]) {
+            let op = match self.previous() {
+                Token::Equal => BinOp::Equal,
+                Token::NotEqual => BinOp::NotEqual,
+                _ => unreachable!(),
+            };
+            let right = self.parse_comparison();
+            expr = Expr::Binary {
+                op,
+                lhs: Box::new(expr),
+                rhs: Box::new(right),
+            };
+        }
+
+        expr
+    }
+
+    fn parse_comparison(&mut self) -> Expr {
+        let mut expr = self.parse_additive();
+
+        while self.match_tokens(&[Token::Greater, Token::GreaterEqual, Token::Less, Token::LessEqual]) {
+            let op = match self.previous() {
+                Token::Greater => BinOp::Greater,
+                Token::GreaterEqual => BinOp::GreaterEqual,
+                Token::Less => BinOp::Less,
+                Token::LessEqual => BinOp::LessEqual,
+                _ => unreachable!(),
+            };
+            let right = self.parse_additive();
+            expr = Expr::Binary {
+                op,
+                lhs: Box::new(expr),
+                rhs: Box::new(right),
+            };
+        }
+
+        expr
     }
 
     fn parse_additive(&mut self) -> Expr {
@@ -140,7 +293,7 @@ impl Parser {
     }
 
     fn parse_multiplicative(&mut self) -> Expr {
-        let mut expr = self.parse_primary();
+        let mut expr = self.parse_unary();
 
         while self.match_tokens(&[Token::Multiplica, Token::Divide]) {
             let op = match self.previous() {
@@ -148,7 +301,7 @@ impl Parser {
                 Token::Divide => BinOp::Div,
                 _ => unreachable!(),
             };
-            let right = self.parse_primary();
+            let right = self.parse_unary();
             expr = Expr::Binary {
                 op,
                 lhs: Box::new(expr),
@@ -159,6 +312,23 @@ impl Parser {
         expr
     }
 
+    fn parse_unary(&mut self) -> Expr {
+        if self.match_tokens(&[Token::Not, Token::Menos]) {
+            let op = match self.previous() {
+                Token::Not => UnaryOp::Not,
+                Token::Menos => UnaryOp::Minus,
+                _ => unreachable!(),
+            };
+            let expr = self.parse_unary();
+            return Expr::Unary {
+                op,
+                expr: Box::new(expr),
+            };
+        }
+
+        self.parse_primary()
+    }
+
     fn parse_primary(&mut self) -> Expr {
         // Número
         if let Token::Number(n) = self.peek() {
@@ -167,7 +337,16 @@ impl Parser {
             return Expr::Number(num);
         }
 
-        // Identificador
+        // Booleanos
+        if self.match_token(&Token::True) {
+            return Expr::Bool(true);
+        }
+
+        if self.match_token(&Token::False) {
+            return Expr::Bool(false);
+        }
+
+        // Identificador (variável ou chamada de função)
         if let Token::Ident(name) = self.peek() {
             let name = name.clone();
             self.advance();

@@ -14,7 +14,6 @@ fn main() {
     // Etapa 1: análise léxica
     let mut lexer = Lexer::nova_instancia(&input);
     let tokens = lexer.tokenizador();
-
     println!("=== TOKENS ===");
     for token in &tokens {
         println!("{:?}", token);
@@ -24,7 +23,6 @@ fn main() {
     // Etapa 2: análise sintática
     let mut parser = Parser::new(tokens);
     let (funcoes, main_body) = parser.parse();
-
     println!("=== FUNÇÕES DEFINIDAS ===");
     for f in &funcoes {
         println!("{:#?}", f);
@@ -39,13 +37,13 @@ fn main() {
 
     // Etapa 3: interpretação
     let mut interpreter = Interpreter::new();
-
     println!("=== EXECUTANDO PROGRAMA ===");
     match interpreter.interpret(funcoes, main_body) {
         Ok(result) => {
             println!("Programa executado com sucesso!");
             match result {
                 interpreter::Value::Number(n) => println!("Resultado: {}", n),
+                interpreter::Value::Bool(b) => println!("Resultado: {}", b),
                 interpreter::Value::Void => println!("Resultado: void"),
             }
         }
