@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::ast::{Stmt, Expr, Function, BinOp, LogicalOp, UnaryOp};
 
+// Os tipos de valores
 #[derive(Debug, Clone)]
 pub enum Value {
     Number(i64),
@@ -8,6 +9,7 @@ pub enum Value {
     Void,
 }
 
+//O tratamento desses valores
 impl Value {
     fn as_number(&self) -> i64 {
         match self {
@@ -72,6 +74,7 @@ impl Interpreter {
     }
 
     fn execute_statement(&mut self, stmt: &Stmt) -> Result<Value, RuntimeError> {
+        //Tal como havia nos exemplos do Lox, temos o uso de statements
         match stmt {
             Stmt::VarDecl { name, value } => {
                 let val = self.evaluate_expression(value)?;
@@ -109,13 +112,13 @@ impl Interpreter {
             Stmt::For { init, condition, update, body } => {
                 let mut last_value = Value::Void;
 
-                // Executa inicialização se houver
+                // Executa inicialização, se houver
                 if let Some(init_stmt) = init {
                     self.execute_statement(init_stmt)?;
                 }
 
                 loop {
-                    // Verifica condição se houver
+                    // Verifica condição, caso haja
                     if let Some(cond_expr) = condition {
                         let condition_value = self.evaluate_expression(cond_expr)?;
                         if !condition_value.is_truthy() {
@@ -123,10 +126,10 @@ impl Interpreter {
                         }
                     }
 
-                    // Executa corpo
+                    // Executa o corpo do código
                     last_value = self.execute_statements(body)?;
 
-                    // Executa atualização se houver
+                    // Executa atualização, se tiver
                     if let Some(update_expr) = update {
                         self.evaluate_expression(update_expr)?;
                     }
@@ -247,7 +250,7 @@ impl Interpreter {
         // Salva o estado atual das variáveis locais
         let saved_locals = self.locals.clone();
 
-        // Avalia os argumentos e cria novos bindings
+        // Avalia os argumentos!
         for (param, arg) in function.params.iter().zip(args.iter()) {
             let arg_value = self.evaluate_expression(arg)?;
             self.locals.insert(param.clone(), arg_value);
@@ -267,6 +270,7 @@ impl Interpreter {
     }
 }
 
+//Basicamente, gestão de erros e comportamentos anôMalos
 impl std::fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

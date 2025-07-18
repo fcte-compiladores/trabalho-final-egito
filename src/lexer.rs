@@ -10,7 +10,7 @@ pub enum Token {
     Ident(String),
     True,
     False,
-    // Palavras-chave
+    // Palavras-chave daquilo que foi implementado neste programa já
     Int,
     Bool,
     Return,
@@ -23,25 +23,25 @@ pub enum Token {
     Menos,
     Multiplica,
     Divide,
-    Assign, // '='
+    Assign, // A atribuição de valor
     // Operadores de comparação
-    Equal,        // ==
-    NotEqual,     // !=
-    Less,         // <
-    Greater,      // >
-    LessEqual,    // <=
-    GreaterEqual, // >=
+    Equal,
+    NotEqual,
+    Less,
+    Greater,
+    LessEqual,
+    GreaterEqual,
     // Operadores lógicos
     And,          // &&
     Or,           // ||
     Not,          // !
-    // Pontuação
+    // Pontuação e outros sinais gráficos e afins
     AbrePar,      // (
     FechaPar,     // )
     AbreChave,    // {
     FechaChave,   // }
-    PontoEVirgula,// ;
-    Virgula,      // ,
+    PontoEVirgula,
+    Virgula,
 }
 
 pub struct Lexer<'a> {
@@ -187,7 +187,7 @@ impl<'a> Lexer<'a> {
                         self.chars.next(); // consome o segundo '&'
                         Token::And
                     } else {
-                        continue; // ignora '&' sozinho por enquanto
+                        continue; // ignora '&' sozinho, por enquanto
                     }
                 }
                 '|' => {
@@ -195,17 +195,17 @@ impl<'a> Lexer<'a> {
                         self.chars.next(); // consome o segundo '|'
                         Token::Or
                     } else {
-                        continue; // ignora '|' sozinho por enquanto
+                        continue; // não trata '|' sozinho, por enquanto
                     }
                 }
-                _ => continue, // ignora caracteres desconhecidos
+                _ => continue, // ignora caracteres desconhecidos e/ou não configurados ainda
             });
         }
         None
     }
 
     fn skip_line_comment(&mut self) {
-        // Consome caracteres até encontrar nova linha ou fim do arquivo
+        // Consome caracteres até encontrar uma nova linha ou o final do arquivo
         while let Some(c) = self.chars.next() {
             if c == '\n' {
                 break;
@@ -214,13 +214,13 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_block_comment(&mut self) -> bool {
-        // Consome caracteres até encontrar */ ou fim do arquivo
+        // Consome caracteres até encontrar */ ou o final do arquivo
         while let Some(c) = self.chars.next() {
             if c == '*' {
                 if let Some(&next_char) = self.chars.peek() {
                     if next_char == '/' {
                         self.chars.next(); // consome o '/'
-                        return true; // Comentário fechado com sucesso
+                        return true; // Comentário fechado corretamente!
                     }
                 }
             }

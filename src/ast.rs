@@ -21,7 +21,7 @@ pub enum Stmt {
     },
 }
 
-// Aqui são as expressões, que podem ser avaliados pra produzir um valor
+// Aqui são as expressões, que podem ser avaliadas pra produzir um valor
 #[derive(Debug, Clone)]
 pub enum Expr {
     Number(i64),
@@ -47,7 +47,7 @@ pub enum Expr {
     },
 }
 
-// Representa as funções, com nomes, parâmetros e um corpo de código a ser executado
+// Representa as funções, com nomes, parâMetros e um corpo de código a ser executado
 #[derive(Debug, Clone)]
 pub struct Function {
     pub name: String,
