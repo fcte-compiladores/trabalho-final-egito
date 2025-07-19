@@ -1,12 +1,4 @@
-mod lexer;
-mod parser;
-mod ast;
-mod interpreter;
-
-use lexer::Lexer;
-use parser::Parser;
-use interpreter::Interpreter;
-
+use mini_interpretador::{Lexer, Parser, Interpreter, Value};
 fn main() {
     //Caso queira que outro programa seja lido, o path terá de ser mudado aqui
     //Por enquanto, o default/padrão será o programa.mc mesmo, que inclusive está nesta mesma pasta
@@ -45,9 +37,9 @@ sintaticamente e o interpreta!");
         Ok(result) => {
             println!("Programa executado com sucesso!");
             match result {
-                interpreter::Value::Number(n) => println!("Resultado: {}", n),
-                interpreter::Value::Bool(b) => println!("Resultado: {}", b),
-                interpreter::Value::Void => println!("Resultado: void"),
+                Value::Number(n) => println!("Resultado: {}", n),
+                Value::Bool(b) => println!("Resultado: {}", b),
+                Value::Void => println!("Resultado: void"),
             }
         }
         //caso haja erro

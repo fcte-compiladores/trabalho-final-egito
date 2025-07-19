@@ -1,7 +1,19 @@
 [package]
-name = "mini-interpretador"
-version = "0.1.0"
-edition = "2024"
+name = "mini_interpretador"
+version = "1.1.0"
+edition = "2021"
+authors = ["Davi Marques"]
+description = "Um mini interpretador para linguagem similar ao C/C++"
+
+[[bin]]
+name = "mini_interpretador"
+path = "src/main.rs"
+
+[lib]
+name = "mini_interpretador"
+path = "src/lib.rs"
 
 [dependencies]
-arithmetic-parser = "0.3.0"
+
+[dev-dependencies]
+# Adicione dependências específicas para testes se necessário
